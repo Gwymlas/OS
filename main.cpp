@@ -105,29 +105,36 @@ int main() {
 
     HANDLE commands[14] = {e1, e1, e1, e1, e2, e4, e1, e2, e3, e3, e1, e2, e3, e3};
 
-    float* arg[42] = {&a, &c, &res1,
-                      &four, &res1, &res1,
-                      &b, &b, &res2,
-                      &res1,&neg_one, &res1,
-                      &res2,&res1, &res1,
-                      &res1,&res1, &res1,
-                      &neg_one, &b, &res2,
-                      &res2, &res1, &x1,
-                      &x1, &two, &x1,
-                      &x1, &a, &x1,
-                      &neg_one, &res1, &res1,
-                      &res2, &res1, &x2,
-                      &x2, &two, &x2,
-                      &x2, &a, &x2};
+    // x1 = (-b + sqrt(D)) / 2a
+    // x2 = (-b - sqrt(D)) / 2a
+    // D = b*b - 4*a*c
+
+    float* arg[42] = {&a, &c, &res1, // a*c
+                      &four, &res1, &res1, // 4*a*c
+                      &b, &b, &res2, // b*b
+                      &res1,&neg_one, &res1, // -1 * 4*a*c
+                      &res2,&res1, &res1, // D = b*b - 4*a*c
+                      &res1,&res1, &res1, //sqrt(D)
+                      &neg_one, &b, &res2, // -1 * b
+                      &res2, &res1, &x1, // -b + sqrt(D)
+                      &x1, &two, &x1, //(-b + sqrt(D)) / 2
+                      &x1, &a, &x1, //x1 = (-b + sqrt(D)) / 2a
+                      &neg_one, &res1, &res1, // -sqrt(D)
+                      &res2, &res1, &x2, // -b - sqrt(D)
+                      &x2, &two, &x2, // (-b - sqrt(D)) / 2
+                      &x2, &a, &x2}; // x2 = (-b - sqrt(D)) / 2a
 
     for (int i = 0, j = 0; i < 14, j < 42; ++i, j+=3) {
         HANDLE h = CreateFile(".\\file.dat",GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
                               NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); // Создать файл
 
-        float elem[2] = {*arg[j], *arg[j+1]};
-        WriteFile(h, &elem, 8, &n, NULL); // Передать аргументы
+        HANDLE m = CreateFileMapping(h, 0, PAGE_READWRITE, 0, 0, NULL); // PAGE_READWRITE instead PAGE_READONLY
+        float *p = (float *) MapViewOfFile(m, FILE_MAP_ALL_ACCESS, 0, 0, 0); // FILE_MAP_ALL_ACCESS instead FILE_MAP_READ
 
-        CloseHandle(h); // Закрыть файл
+        p[0] = *arg[j];
+        p[1] = *arg[j+1];
+
+        CloseHandle(m);
 
         SetEvent(commands[i]); // Разрешить потоку выполнить операцию
         WaitForSingleObject(e0, INFINITE); // Ждать доклад
@@ -135,7 +142,8 @@ int main() {
         h = CreateFile(".\\file.dat",GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
                        NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-        HANDLE m = CreateFileMapping(h, 0, PAGE_READONLY, 0, 0, NULL);
+
+        m = CreateFileMapping(h, 0, PAGE_READONLY, 0, 0, NULL);
         *arg[j+2] = *(float *) MapViewOfFile(m, FILE_MAP_READ, 0, 0, 0);
 
         CloseHandle(m);
