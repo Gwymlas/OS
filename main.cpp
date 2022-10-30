@@ -1,24 +1,6 @@
 #include <windows.h>
 #include <iostream>
 #include <cmath>
-#include <vector>
-
-//DWORD WINAPI mythread1(void *q) { // Поток-читатель
-//    HANDLE e1 = OpenEvent(EVENT_ALL_ACCESS, TRUE, "ev1");
-//    HANDLE e3 = OpenEvent(EVENT_ALL_ACCESS, TRUE, "ev3");
-//    while(1){
-//        WaitForSingleObject(e1, INFINITE); // Ждать разрешения
-//        HANDLE f = CreateFile(".\\file.dat",GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
-//        NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); // Открыть файл
-//        HANDLE m = CreateFileMapping(f, 0, PAGE_READONLY, 0, 0, NULL);
-//        unsigned char *p = (unsigned char *) MapViewOfFile(m, FILE_MAP_READ, 0, 0, 0);
-//        std::cout << p[0]; // Отобразить переданную букву
-//        CloseHandle(m);
-//        CloseHandle(f);
-//        SetEvent(e3); // Доложить о выполнении
-//    }
-//}
-
 
 DWORD WINAPI Thread_Mul (void *q) {
     DWORD n;
@@ -68,6 +50,7 @@ DWORD WINAPI Thread_Div (void *q) {
                               NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); // Открыть файл
         HANDLE m = CreateFileMapping(f, 0, PAGE_READWRITE, 0, 0, NULL); // PAGE_READWRITE instead PAGE_READONLY
         float *p = (float *) MapViewOfFile(m, FILE_MAP_ALL_ACCESS, 0, 0, 0); // FILE_MAP_ALL_ACCESS instead FILE_MAP_READ
+        if(p[1] == 0) throw std::invalid_argument("Division by zero");
         float result = (float)p[0] / p[1];
         std::cout << p[0] << " / " << p[1] << " = " << result << std::endl; // Отобразить операцию
         p[0] = result;
@@ -87,6 +70,7 @@ DWORD WINAPI Thread_Sqrt (void *q) {
                               NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); // Открыть файл
         HANDLE m = CreateFileMapping(f, 0, PAGE_READWRITE, 0, 0, NULL); // PAGE_READWRITE instead PAGE_READONLY
         float *p = (float *) MapViewOfFile(m, FILE_MAP_ALL_ACCESS, 0, 0, 0); // FILE_MAP_ALL_ACCESS instead FILE_MAP_READ
+        if(p[0] < 0) throw std::invalid_argument("Argument less than zero");
         float result = sqrt(p[0]);
         std::cout << "sqrt(" << p[0] << ") " <<  " = " << result << std::endl; // Отобразить операцию
         p[0] = result;
@@ -151,7 +135,7 @@ int main() {
         h = CreateFile(".\\file.dat",GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
                        NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-        HANDLE m = CreateFileMapping(h, 0, PAGE_READONLY, 0, 0, NULL); // test
+        HANDLE m = CreateFileMapping(h, 0, PAGE_READONLY, 0, 0, NULL);
         *arg[j+2] = *(float *) MapViewOfFile(m, FILE_MAP_READ, 0, 0, 0);
 
         CloseHandle(m);
