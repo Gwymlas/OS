@@ -1,7 +1,6 @@
 #include <windows.h>
 
 void MyDraw(HWND h) {
-    //POINT pt[3] = { {130, 10}, {105,50}, {155,50} };
     HDC dc = GetDC(h); // получить контекст
 
     HBRUSH b_red = CreateSolidBrush(RGB(255, 0, 0));
@@ -96,10 +95,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     w.style = CS_HREDRAW | CS_VREDRAW;
     w.lpfnWndProc = WndProc;
     w.hInstance = hInstance;
-    w.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); // WHITE_BRUSH
+    w.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     w.lpszClassName = LPCWSTR("My Class");
     RegisterClass(&w);
-    HWND hwnd = CreateWindow(LPCWSTR("My Class"), LPCWSTR("Example"),
+    HWND hwnd = CreateWindow(LPCWSTR("My Class"), LPCWSTR("Kurakin 6311"),
                              WS_OVERLAPPEDWINDOW, 100, 100, 700, 500,
                              NULL, NULL, hInstance, NULL);
 
